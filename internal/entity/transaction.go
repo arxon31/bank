@@ -9,6 +9,8 @@ var (
 	ErrToID          = errors.New("invalid to account id")
 )
 
+const InvalidTransactionID = -1
+
 type Transaction struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
