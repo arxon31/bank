@@ -8,7 +8,7 @@ import (
 
 type Postgres struct {
 	DB     *sql.DB
-	logger *slog.Logger
+	Logger *slog.Logger
 }
 
 func New(url string, logger *slog.Logger) (*Postgres, error) {
@@ -22,7 +22,7 @@ func New(url string, logger *slog.Logger) (*Postgres, error) {
 		return nil, err
 	}
 
-	return &Postgres{DB: db, logger: logger}, nil
+	return &Postgres{DB: db, Logger: logger}, nil
 }
 
 func (p *Postgres) Close() error {

@@ -10,8 +10,6 @@ var (
 	ErrInsufficientFunds = errors.New("insufficient funds")
 )
 
-const invalidTransactionID = -1
-
 type TransactionUseCase struct {
 	transactionRepo TransactionRepository
 	userRepo        UserRepository
@@ -27,16 +25,16 @@ func NewTransactionUseCase(tr TransactionRepository, ur UserRepository) *Transac
 func (tu *TransactionUseCase) MakeTransaction(ctx context.Context, transaction entity.Transaction) (transactionID int64, err error) {
 	payerAmount, err := tu.userRepo.GetUserAmount(ctx, transaction.FromAccountID)
 	if err != nil {
-		return invalidTransactionID, err
+		return entity.InvalidTransactionID, err
 	}
 
 	if payerAmount < transaction.Amount {
-		return invalidTransactionID, ErrInsufficientFunds
+		return entity.InvalidTransactionID, ErrInsufficientFunds
 	}
 
 	payeeAmount, err := tu.userRepo.GetUserAmount(ctx, transaction.ToAccountID)
 	if err != nil {
-		return invalidTransactionID, err
+		return entity.InvalidTransactionID, err
 	}
 
 	payerAmount -= transaction.Amount
@@ -44,12 +42,12 @@ func (tu *TransactionUseCase) MakeTransaction(ctx context.Context, transaction e
 
 	err = tu.userRepo.UpdateUserAmount(ctx, transaction.FromAccountID, payerAmount)
 	if err != nil {
-		return 0, err
+		return entity.InvalidTransactionID, err
 	}
 
 	err = tu.userRepo.UpdateUserAmount(ctx, transaction.ToAccountID, payeeAmount)
 	if err != nil {
-		return 0, err
+		return entity.InvalidTransactionID, err
 	}
 
 	return tu.transactionRepo.Store(ctx, transaction)
