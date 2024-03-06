@@ -10,4 +10,8 @@ run: build
 
 .PHONY: migrate-up
 migrate-up:
-	migrate -path migrations -database '$(PG_URL)?sslmode=disable' up
+	goose -dir migrations postgres $(PG_URL) up
+
+.PHONY: migrate-down
+migrate-down:
+	goose -dir migrations postgres $(PG_URL) down
