@@ -1,2 +1,4 @@
 .idea
 cmd/app/app
+postgres
+rabbitmq
