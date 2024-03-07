@@ -1,4 +1,5 @@
 include .env
+export $(shell sed 's/=.*//' .env)
 
 .PHONY: build
 build:
@@ -6,7 +7,7 @@ build:
 
 .PHONY: run
 run: build
-	 ./cmd/app/app
+	./cmd/app/app
 
 .PHONY: migrate-up
 migrate-up:

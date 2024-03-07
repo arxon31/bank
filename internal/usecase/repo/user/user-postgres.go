@@ -42,13 +42,15 @@ func (r *Repo) UpdateUserAmount(ctx context.Context, userID int64, amount int64)
 
 func (r *Repo) GetUserAmount(ctx context.Context, userID int64) (amount int64, err error) {
 	const op = "user.GetUserAmount"
+	var currentAmount int64
 	logger := r.Logger.With(slog.String("op", op))
 
 	logger.Debug("getting user amount", slog.Int64("user_id", userID))
 
-	err = r.DB.QueryRowContext(ctx, "SELECT amount FROM users WHERE id = $1", userID).Scan(&amount)
+	row := r.DB.QueryRowContext(ctx, "SELECT amount FROM users WHERE id = $1", userID)
+	err = row.Scan(&currentAmount)
 	if err == nil {
-		logger.Info("got user amount", slog.Int64("amount", amount))
+		logger.Info("got user amount", slog.Int64("amount", currentAmount))
 	}
-	return amount, err
+	return currentAmount, err
 }

@@ -29,13 +29,7 @@ func (r *Repo) Store(ctx context.Context, transaction entity.Transaction) (trans
 	}
 	logger.Debug("inserting transaction", slog.Int64("from_account_id", transaction.FromAccountID), slog.Int64("to_account_id", transaction.ToAccountID), slog.Int64("amount", transaction.Amount))
 
-	res, err := tx.ExecContext(ctx, "INSERT INTO transactions (from_account_id, to_account_id, amount) VALUES ($1, $2, $3)", transaction.FromAccountID, transaction.ToAccountID, transaction.Amount)
-	if err != nil {
-		tx.Rollback()
-		return entity.InvalidTransactionID, err
-	}
-
-	id, err = res.LastInsertId()
+	_, err = tx.ExecContext(ctx, "INSERT INTO transactions (from_id, to_id, amount) VALUES ($1, $2, $3)", transaction.FromAccountID, transaction.ToAccountID, transaction.Amount)
 	if err != nil {
 		tx.Rollback()
 		return entity.InvalidTransactionID, err
