@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"database/sql"
-	_ "github.com/jackc/pgx/stdlib"
 	"log/slog"
+
+	_ "github.com/jackc/pgx/stdlib" // pgx driver
 )
 
 type Postgres struct {

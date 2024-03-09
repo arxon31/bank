@@ -6,6 +6,7 @@ import (
 	"github.com/arxon31/bank/internal/usecase"
 	"github.com/arxon31/bank/internal/usecase/repo/transaction"
 	"github.com/arxon31/bank/internal/usecase/repo/user"
+	"github.com/arxon31/bank/pkg/logging"
 
 	"github.com/arxon31/bank/pkg/amqp"
 	"github.com/arxon31/bank/pkg/postgres"
@@ -17,33 +18,30 @@ import (
 )
 
 func Run(cfg *config.Config) {
-	const op = "app.Run"
-	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     slog.LevelDebug,
-	})
-	logger := slog.New(handler).With(slog.String("op", op))
+
+	logger := logging.New(cfg.App.Env)
 
 	db, err := postgres.New(cfg.DB.URL, logger)
 	if err != nil {
-		logger.Error("failed to connect to postgres", err)
+		logger.Error("failed to connect to postgres", slog.String("url", cfg.DB.URL), slog.String("error", err.Error()))
+		return
 	}
 	defer db.Close()
 
 	transactionRepo, err := transaction.NewRepo(db)
 	if err != nil {
-		logger.Error("failed to create transaction repo", err)
+		logger.Error("failed to create transaction repo", slog.String("error", err.Error()))
 		return
 	}
 	userRepo, err := user.NewRepo(db)
 	if err != nil {
-		logger.Error("failed to create user repo", err)
+		logger.Error("failed to create user repo", slog.String("error", err.Error()))
 		return
 	}
 
 	rabbitConn, err := amqp.NewRabbitMQConn(cfg.AMQP.URL)
 	if err != nil {
-		logger.Error("failed to connect to rabbitmq", err)
+		logger.Error("failed to connect to rabbitmq", slog.String("url", cfg.AMQP.URL), slog.String("error", err.Error()))
 		return
 	}
 	defer rabbitConn.Close()
@@ -66,9 +64,7 @@ func Run(cfg *config.Config) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-	select {
-	case s := <-interrupt:
-		logger.Info("received signal", slog.String("signal", s.String()))
-	}
+	s := <-interrupt
+	logger.Info("received signal", slog.String("signal", s.String()))
 
 }

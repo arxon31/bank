@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/arxon31/bank/config"
 	"github.com/arxon31/bank/internal/app"
-	"log"
 )
 
 func main() {

@@ -19,8 +19,19 @@ migrate-down:
 
 .PHONY: docker-build
 docker-build:
-	docker build . -t $(APP_NAME)
+	docker build . -t $(APP_NAME):latest
 
-.PHONY: compose-run
-compose-run: migrate-up docker-build
+.PHONY: compose-up
+compose-up:
 	docker-compose up -d
+
+.PHONY: test
+test:
+	go test -v -cover  ./...
+
+.PHONY: lint
+lint:
+	golangci-lint run --fast --timeout 1m --config=./.golangci.yml
+
+.PHONY: compose-app
+compose-app: lint test docker-build compose-up

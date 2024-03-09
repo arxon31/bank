@@ -2,8 +2,9 @@ package user
 
 import (
 	"context"
-	"github.com/arxon31/bank/pkg/postgres"
 	"log/slog"
+
+	"github.com/arxon31/bank/pkg/postgres"
 )
 
 type Repo struct {
@@ -24,7 +25,7 @@ func (r *Repo) UpdateUserAmount(ctx context.Context, userID int64, amount int64)
 	}
 
 	logger.Debug("updating user amount", slog.Int64("user_id", userID), slog.Int64("amount", amount))
-	_, err = tx.ExecContext(ctx, "UPDATE users SET amount = $1 WHERE id = $2", amount, userID)
+	_, err = tx.ExecContext(ctx, "UPDATE users SET amount = $1, updated_at = NOW() WHERE id = $2", amount, userID)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -35,7 +36,7 @@ func (r *Repo) UpdateUserAmount(ctx context.Context, userID int64, amount int64)
 		return err
 	}
 
-	logger.Info("updated user amount", slog.Int64("user_id", userID), slog.Int64("amount", amount))
+	logger.Debug("updated user amount", slog.Int64("user_id", userID), slog.Int64("amount", amount))
 	return nil
 
 }
@@ -50,7 +51,7 @@ func (r *Repo) GetUserAmount(ctx context.Context, userID int64) (amount int64, e
 	row := r.DB.QueryRowContext(ctx, "SELECT amount FROM users WHERE id = $1", userID)
 	err = row.Scan(&currentAmount)
 	if err == nil {
-		logger.Info("got user amount", slog.Int64("amount", currentAmount))
+		logger.Debug("got user amount", slog.Int64("amount", currentAmount))
 	}
 	return currentAmount, err
 }

@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
-	"github.com/arxon31/bank/internal/entity"
 	"log/slog"
+
+	"github.com/arxon31/bank/internal/entity"
 )
 
 var (
@@ -58,8 +59,6 @@ func (tu *TransactionUseCase) MakeTransaction(ctx context.Context, transaction e
 		tu.logger.Error("failed to update payee user amount", slog.String("error", err.Error()))
 		return entity.InvalidTransactionID, err
 	}
-
-	tu.logger.Info("successful transaction")
 
 	return tu.transactionRepo.Store(ctx, transaction)
 

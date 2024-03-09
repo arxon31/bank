@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/arxon31/bank/internal/entity"
 )
+
+//go:generate mockgen -source=interfaces.go -destination=./mocks_test.go -package=usecase
 
 type (
 	Transaction interface {

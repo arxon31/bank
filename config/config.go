@@ -3,8 +3,13 @@ package config
 import "github.com/ilyakaznacheev/cleanenv"
 
 type Config struct {
-	DB   DB   `yaml:"db"`
-	AMQP AMQP `yaml:"amqp"`
+	App  APP
+	DB   DB
+	AMQP AMQP
+}
+
+type APP struct {
+	Env string `env-required:"true" env:"APP_ENV"`
 }
 
 type DB struct {

@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log/slog"
+
 	"github.com/arxon31/bank/internal/entity"
 	"github.com/arxon31/bank/internal/usecase"
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
-	"log/slog"
 )
 
 const (
@@ -23,17 +24,13 @@ const (
 	queueExclusive  = false
 	queueNoWait     = false
 
-	publishMandatory = false
-	publishImmediate = false
-
-	prefetchCount  = 1
-	prefetchSize   = 0
-	prefetchGlobal = false
-
 	consumeAutoAck   = false
 	consumeExclusive = false
 	consumeNoLocal   = false
 	consumeNoWait    = false
+
+	requeueFailedDelivery = true
+	nonMultiple           = false
 )
 
 type TransactionConsumer struct {
@@ -132,27 +129,31 @@ func (c *TransactionConsumer) worker(ctx context.Context, messages <-chan amqp.D
 
 		_, err = c.transactionUseCase.MakeTransaction(ctx, model)
 		if err != nil {
-			switch err {
-			case usecase.ErrInsufficientFunds:
+			if errors.Is(err, usecase.ErrInsufficientFunds) || errors.Is(err, sql.ErrNoRows) {
 				c.logger.Error("Failed to make transaction", slog.String("error", err.Error()))
-				delivery.Reject(false)
-			case sql.ErrNoRows:
+				err = delivery.Reject(!requeueFailedDelivery)
+				if err != nil {
+					c.logger.Error("Failed to reject delivery", slog.String("error", err.Error()))
+				}
+			} else {
 				c.logger.Error("Failed to make transaction", slog.String("error", err.Error()))
-				delivery.Reject(false)
-			default:
-				c.logger.Error("Failed to make transaction", slog.String("error", err.Error()))
-				delivery.Reject(true)
+				err = delivery.Reject(requeueFailedDelivery)
+				if err != nil {
+					c.logger.Error("Failed to reject delivery", slog.String("error", err.Error()))
+				}
 			}
 		}
 
 		c.logger.Info("Transaction processed")
-		delivery.Ack(false)
+		err = delivery.Ack(nonMultiple)
+		if err != nil {
+			c.logger.Error("Failed to ack delivery", slog.String("error", err.Error()))
+		}
 	}
 
 	c.logger.Info("Deliveries channel closed")
 }
 
-// StartConsumer Start new rabbitmq consumer
 func (c *TransactionConsumer) StartConsumer(workerPoolSize int, exchange, queueName, bindingKey, consumerTag string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -181,6 +182,5 @@ func (c *TransactionConsumer) StartConsumer(workerPoolSize int, exchange, queueN
 	}
 
 	chanErr := <-ch.NotifyClose(make(chan *amqp.Error))
-	//c.logger.Error("ch.NotifyClose", slog.String("error", chanErr.Error()))
 	return chanErr
 }

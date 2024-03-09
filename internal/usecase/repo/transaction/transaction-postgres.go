@@ -2,9 +2,10 @@ package transaction
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/arxon31/bank/internal/entity"
 	"github.com/arxon31/bank/pkg/postgres"
-	"log/slog"
 )
 
 type Repo struct {
@@ -35,14 +36,11 @@ func (r *Repo) Store(ctx context.Context, transaction entity.Transaction) (trans
 		return entity.InvalidTransactionID, err
 	}
 
-	logger.Debug("inserted transaction", slog.Int64("id", id))
-
 	err = tx.Commit()
 	if err != nil {
 		return entity.InvalidTransactionID, err
 	}
-
-	logger.Info("inserted transaction", slog.Int64("id", id))
+	logger.Debug("inserted transaction", slog.Int64("id", id))
 
 	return id, nil
 
