@@ -38,12 +38,13 @@ services:
     command: "postgres postgres://postgres:postgres@postgres:5432/bank_db?sslmode=disable up"
 
 
-  app:
+  consumer:
     image: bank_service:latest
     restart: always
-    hostname: app
+    hostname: consumer
     environment:
       - APP_ENV=prod # supported app env "dev"
+      - PUB_ENV=prod # supported pub env "dev"
       - PG_URL=postgres://postgres:postgres@postgres:5432/bank_db
       - AMQP_URL=amqp://rmuser:rmpassword@rabbitmq:5672/
       - AMQP_EXCHANGE=transactions-exchange
@@ -54,3 +55,16 @@ services:
     depends_on:
       - db
       - rabbitmq
+
+  producer:
+    image: producer:latest
+    restart: always
+    hostname: producer
+    environment:
+      - PRODUCER_ENV=prod # supported app env "dev"
+      - AMQP_URL=amqp://rmuser:rmpassword@rabbitmq:5672/
+      - AMQP_EXCHANGE=transactions-exchange
+      - AMQP_ROUTING_KEY=transactions-routing-key
+    depends_on:
+      - rabbitmq
+      - consumer

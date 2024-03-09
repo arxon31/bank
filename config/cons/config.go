@@ -1,4 +1,4 @@
-package config
+package cons
 
 import "github.com/ilyakaznacheev/cleanenv"
 

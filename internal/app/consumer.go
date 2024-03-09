@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/arxon31/bank/config"
+	"github.com/arxon31/bank/config/cons"
 	mq "github.com/arxon31/bank/internal/controller/rabbtimq"
 	"github.com/arxon31/bank/internal/usecase"
 	"github.com/arxon31/bank/internal/usecase/repo/transaction"
@@ -17,7 +17,7 @@ import (
 	"syscall"
 )
 
-func Run(cfg *config.Config) {
+func RunConsumer(cfg *cons.Config) {
 
 	logger := logging.New(cfg.App.Env)
 
@@ -51,7 +51,7 @@ func Run(cfg *config.Config) {
 	consumer := mq.NewTransactionConsumer(rabbitConn, logger, useCase)
 
 	go func() {
-		err = consumer.StartConsumer(
+		_ = consumer.StartConsumer(
 			cfg.AMQP.WorkerPoolSize,
 			cfg.AMQP.Exchange,
 			cfg.AMQP.Queue,

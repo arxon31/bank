@@ -142,6 +142,7 @@ func (c *TransactionConsumer) worker(ctx context.Context, messages <-chan amqp.D
 					c.logger.Error("Failed to reject delivery", slog.String("error", err.Error()))
 				}
 			}
+			continue
 		}
 
 		c.logger.Info("Transaction processed")

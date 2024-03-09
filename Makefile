@@ -5,6 +5,10 @@ export $(shell sed 's/=.*//' .env)
 build:
 	go build -C cmd/app -o app
 
+.PHONY: run-publisher
+run-publisher:
+	go run cmd/publisher/main.go
+
 .PHONY: run
 run: build migrate-up
 	./cmd/app/app
@@ -20,6 +24,7 @@ migrate-down:
 .PHONY: docker-build
 docker-build:
 	docker build . -t $(APP_NAME):latest
+	docker build . -t producer:latest -f Dockerfile-producer
 
 .PHONY: compose-up
 compose-up:
