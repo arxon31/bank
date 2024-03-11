@@ -39,4 +39,4 @@ lint:
 	golangci-lint run --fast --timeout 1m --config=./.golangci.yml
 
 .PHONY: compose-app
-compose-app: lint test docker-build compose-up
+compose-app: docker-build compose-up
